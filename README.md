@@ -20,7 +20,8 @@ To deploy a PHP web application using this image the following is required:
 ## Configure and Install
 
 Check the **deploy.env** file for build configurations on the production image and **deploy_dev.env** 
-for build configurations on the development image.
+for build configurations on the development image. To publish the image you will need to change the 
+**DOCKER_REPO** var to your private repository location.
 
 ## Building the docker image
 
