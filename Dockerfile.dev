@@ -1,0 +1,125 @@
+#-----------------------------------------------------------------------
+# Docker Image for Nginx-PHP7-NodeJS Web application
+#   - php webserver is used instead of nginx
+#   - all services are run by application user
+#   - development image with additional tools 
+#     for testing and code analysis
+#-----------------------------------------------------------------------
+FROM php:7-fpm-alpine
+MAINTAINER Paulo Costa <paulo.costa@fccn.pt>
+
+#---- prepare environment variables
+ENV APP_ROOT /app
+ENV WEB_DOCUMENT_ROOT /app/html
+ENV PHP_ROOT /usr/local/etc/php
+ENV PHP_FPM_ROOT /usr/local/etc
+ENV NGINX_ROOT /etc/nginx
+ENV SIMPLESAML_ROOT /simplesaml
+
+ENV NODE_VERSION 10.4.0
+ENV YARN_VERSION 1.7.0
+
+#add testing and community repositories
+RUN echo '@testing http://nl.alpinelinux.org/alpine/edge/testing' >> /etc/apk/repositories && \
+  echo '@community http://nl.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories && \
+  echo '@edge http://nl.alpinelinux.org/alpine/edge/main' >> /etc/apk/repositories && \
+  apk update && apk upgrade --no-cache --available
+RUN apk add --upgrade apk-tools@edge
+
+#------ set timezone
+RUN apk --no-cache add ca-certificates && update-ca-certificates
+# Change TimeZone
+RUN apk add --update tzdata
+ENV TZ=Europe/Lisbon
+RUN cp /usr/share/zoneinfo/Europe/Lisbon /etc/localtime
+
+#add application user and group
+RUN addgroup -g 1000 application && adduser -u 1000 -G application -D application
+
+#additional packages
+RUN apk add --no-cache --update curl tar bzip2 openssh git gettext-dev icu-dev gmp-dev \ 
+	nodejs nodejs-npm make nginx freetype libpng libjpeg-turbo openssh libxslt libmcrypt libxslt-dev \
+	mysql-client
+
+RUN apk add --no-cache --update --virtual buildDeps autoconf curl-dev freetype-dev libpng-dev libjpeg-turbo-dev \ 
+    mariadb-dev libmcrypt-dev
+	
+#--- PHP
+
+#-install php libs
+#  intl, gettext - required for translation mechanisms
+#  pcntl - 
+#  gmp - required for php-openid
+RUN docker-php-ext-install pdo_mysql && \
+    docker-php-ext-install intl && \
+    docker-php-ext-install gettext && \
+	docker-php-ext-install pcntl && \
+	docker-php-ext-install gmp && \
+	docker-php-ext-install curl && \
+	docker-php-ext-install xsl && \
+	docker-php-ext-install dom && \
+	docker-php-ext-install zip && \
+	docker-php-ext-install mbstring && \
+	docker-php-ext-install json && \
+	docker-php-ext-install phar && \
+	docker-php-ext-install xml && \
+	docker-php-ext-install simplexml && \
+	docker-php-ext-install tokenizer && \
+	docker-php-ext-install iconv && \
+	docker-php-ext-install xmlwriter && \
+	docker-php-ext-install fileinfo
+
+#- install other extensions via pecl
+#RUN pecl install xdebug && docker-php-ext-enable xdebug \
+#    && pecl install mcrypt-1.0.1 && docker-php-ext-enable mcrypt
+
+#- install other extensions via apk
+RUN apk add --no-cache --update php7-xdebug php7-mcrypt php7-openssl
+
+#-install gd
+RUN docker-php-ext-configure gd \
+    --with-gd \
+    --with-freetype-dir=/usr/include/ \
+    --with-png-dir=/usr/include/ \
+    --with-jpeg-dir=/usr/include/ && \
+  NPROC=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || 1) && \
+  docker-php-ext-install -j${NPROC} gd
+	
+#-configure php
+ADD config/php/conf.d/xzz_fccn-commons.ini $PHP_ROOT/conf.d/xzz_fccn-commons.ini
+ADD config/php/php-fpm.d/www.conf $PHP_FPM_ROOT/php-fpm.d/www.conf
+ADD config/php/php-fpm.d/zz-docker.conf $PHP_FPM_ROOT/php-fpm.d/zz-docker.conf	
+
+#---- Tools
+
+#workaround for manual update of npm
+WORKDIR /tmp/npm-install-directory
+RUN npm install npm@6 && \
+    rm -rf /usr/lib/node_modules  && \
+    mv node_modules /usr/lib/
+	
+WORKDIR /tmp
+#-install composer
+RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
+  php composer-setup.php && \
+  php -r "unlink('composer-setup.php');" && cp composer.phar /usr/local/bin/composer
+
+#-install codeception
+RUN curl -LsS https://codeception.com/codecept.phar -o /usr/local/bin/codecept && \
+  chmod a+x /usr/local/bin/codecept
+  
+#-install grunt
+RUN npm install -g grunt
+
+WORKDIR $APP_ROOT
+#change ownership of application
+RUN chown -R application:application $APP_ROOT
+
+#-install simplesamlphp
+WORKDIR $SIMPLESAML_ROOT
+RUN composer create-project simplesamlphp/simplesamlphp .
+COPY config/simplesaml/config.php $SIMPLESAML_ROOT/config/config.php
+COPY config/simplesaml/authsources.php $SIMPLESAML_ROOT/config/authsources.php
+
+#-remove unecessary libs
+RUN apk del buildDeps

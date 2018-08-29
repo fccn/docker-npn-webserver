@@ -1,0 +1,6 @@
+._*
+*~
+docker-compose.yml
+config/env/**
+config/config.php
+
