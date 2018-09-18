@@ -13,7 +13,6 @@ ENV PHP_ROOT /usr/local/etc/php
 ENV PHP_FPM_ROOT /usr/local/etc
 ENV NGINX_ROOT /etc/nginx
 
-ENV NODE_VERSION 10.4.0
 ENV YARN_VERSION 1.7.0
 
 #add testing and community repositories
@@ -116,4 +115,8 @@ RUN chown -R application:application $APP_ROOT
 RUN apk del buildDeps
 
 RUN mkdir -p /run/nginx
+
+# display version numbers
+RUN echo "Using libraries:"; echo " - NPM " $(npm -v); echo " - NodeJS " $(node -v); echo $(php -v); \
+	echo $(nginx -v);
 CMD ["/tmp/entrypoint.sh"]

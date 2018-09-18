@@ -5,23 +5,21 @@ A set of docker images to use for PHP web applications with NGINX and NodeJS.
 - npn_webserver - Nginx-PHP-Nodejs webserver with a set of tools and configurations for production grade PHP and NodeJS web applications
 - npn_webserver-dev - Nginx-PHP-Nodejs webserver with a set of tools and configurations for development and testing of PHP and NodeJS web applications
 
+The following libraries are used:
+- NPM 6.4.1
+- NodeJs v8.11.4
+- PHP 7.2.10
+- Nginx 1.14.0
+
 ## Requirements
 
 To build this container you need to have docker installed. A makefile is provided along with the project to facilitate 
 building and publishing of the images.
 
-To deploy a PHP web application using this image the following is required:
-
-- Create an application specific Dockerfile using this image as base and import the application code.
-- The application code needs to be placed under /app and the static web content (html pages, javascripts, css's and othre) under /app/html
-- The application and webserver processes run with non-root user **application**
-- If application specific Nginx configurations are required, add them to a file and copy it to **/etc/nginx/90-webapp-settings.conf** in your Dockerfile.
-
 ## Configure and Install
 
-Check the **deploy.env** file for build configurations on the production image and **deploy_dev.env** 
-for build configurations on the development image. To publish the image you will need to change the 
-**DOCKER_REPO** var to your private repository location.
+Check the **deploy.env** file for build configurations for both the production and development images. To publish the image you will 
+need to change the **DOCKER_REPO** var to your repository location. This can also be a private repository location.
 
 ## Building the docker image
 
@@ -32,7 +30,7 @@ make image
 
 To create the development image run:
 ```
-make dpl="deploy_dev.env" image
+make dev-image
 ```
 
 To create and publish a new version of the production image run:
@@ -42,13 +40,55 @@ make release
 
 To create and publish a new version of the development image run:
 ```
-make dpl="deploy_dev.env" release
+make dev-release
 ```
 
 For more information on what it is possible to do
 
 ```
 make help
+```
+
+## Usage
+
+To correctly use this image as a PHP web application the following is required:
+
+- You can use this image directly to serve static php content or you can generate a new image.
+- The application code needs to be placed under /app and the static web content (html pages, javascripts, css's and othre) under /app/html
+- The container entrypoint script needs to be executed by root. The entrypoint script starts and monitors the required processes for the webserver.
+- The application and webserver processes run with non-root user **application** (UID - 1000, GID - 1000)
+- If application specific Nginx configurations are required, add them to a file and copy it to **/etc/nginx/90-webapp-settings.conf**.
+
+To use the image directly run:
+
+```
+$ docker run --name my-npm-app -v /some/content:/app/html:ro -d
+
+```
+
+Alternatively, create an application specific Dockerfile to generate a new image that includes the necessary content and additional configurations:
+
+```
+FROM stvfccn/npn_webserver
+
+#--- additional NGINX configurations
+COPY config/my-nginx-webapp-settings.conf $NGINX_ROOT/90-webapp-settings.conf
+
+
+USER application
+
+#--- copy application contents
+WORKDIR $APP_ROOT
+COPY my-app-contents .
+
+#--- prepare application
+RUN composer install --no-dev
+RUN npm install --production
+RUN grunt dist
+
+# run this container as root because of entrypoint script or replace with new entrypoint
+USER root
+
 ```
 
 ## Author
