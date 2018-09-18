@@ -111,6 +111,9 @@ RUN curl -LsS https://codeception.com/codecept.phar -o /usr/local/bin/codecept &
 #-install grunt
 RUN npm install -g grunt
 
+#-install phantomjs
+npm install -g phantomjs-prebuilt
+
 WORKDIR $APP_ROOT
 #change ownership of application
 RUN chown -R application:application $APP_ROOT

@@ -56,6 +56,8 @@ tag-version: ## Generate container `latest` tag
 version: ## Output the current version
 	@echo $(VERSION)
 
+test: image ## run a test container with the image
+	docker run -i -t -v $(pwd)/test/index.php:/app/html/index.php -p 10080:80 $(APP_NAME):latest
 
 ##------------- old
 #shell: image

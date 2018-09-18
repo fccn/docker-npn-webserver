@@ -42,7 +42,10 @@ RUN apk add --no-cache --update --virtual buildDeps freetype-dev libpng-dev libj
 	
 #--- PHP
 
-#-install required php libs
+#-install php libs
+#  intl, gettext - required for translation mechanisms
+#  pcntl - 
+#  gmp - required for php-openid
 RUN docker-php-ext-install pdo_mysql && \
     docker-php-ext-install intl && \
     docker-php-ext-install gettext && \
