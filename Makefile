@@ -24,13 +24,13 @@ image: ## Build the image using cache
 	docker build -t $(APP_NAME) $(BUILD_ARGS) .
 
 dev-image: ## build the development image using cache
-	docker build -t $(DEV_APP_NAME) $(BUILD_ARGS) -f Dockerfile.dev	.
+	docker build -t $(DEV_APP_NAME) $(BUILD_ARGS) . --target=devel-env
 
 build-nc: ## Build the image without caching
 	docker build --no-cache -t $(APP_NAME) $(BUILD_ARGS) .
 
 build-dev-nc: ## Build the development image without caching
-	docker build --no-cache -t $(DEV_APP_NAME) $(BUILD_ARGS) -f Dockerfile.dev .
+	docker build --no-cache -t $(DEV_APP_NAME) $(BUILD_ARGS) . --target=devel-env
 
 shell: image ## run a shell in a new container created from image
 	docker run -a stdin -a stdout -i -t --entrypoint=/bin/sh $(APP_NAME)
@@ -75,4 +75,4 @@ version: ## Output the current version
 	@echo $(VERSION)
 
 test: image ## run a test container with the image
-	docker run -i -t -d -v $(pwd)/test/www:/app/html -p 10080:80 $(APP_NAME):latest
+	docker run -i -t -d -v $(pwd)/test/www:/app/html -p 10443:443 $(APP_NAME):latest
