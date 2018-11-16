@@ -1,5 +1,7 @@
 # Docker image for a generic Nginx-PHP-NodeJS web application server
 
+[![Build Status](https://dev.azure.com/pcosta-fccn/Docker%20base%20images/_apis/build/status/fccn.docker-npn-webserver)](https://dev.azure.com/pcosta-fccn/Docker%20base%20images/_build/latest?definitionId=2)
+
 A set of docker images to use for PHP web applications with NGINX and NodeJS.
 
 - npn_webserver - Nginx-PHP-Nodejs webserver with a set of tools and configurations for production grade PHP and NodeJS web applications
@@ -13,12 +15,12 @@ The following libraries are used:
 
 ## Requirements
 
-To build this container you need to have docker installed. A makefile is provided along with the project to facilitate 
+To build this container you need to have docker installed. A makefile is provided along with the project to facilitate
 building and publishing of the images.
 
 ## Configure and Install
 
-Check the **deploy.env** file for build configurations for both the production and development images. To publish the image you will 
+Check the **deploy.env** file for build configurations for both the production and development images. To publish the image you will
 need to change the **DOCKER_REPO** var to your repository location. This can also be a private repository location.
 
 ## Building the docker image
