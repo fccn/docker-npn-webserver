@@ -1,7 +1,8 @@
 <?php
 /*
- * The configuration of SimpleSAMLphp
- *
+ * This is a test configuration for SimpleSAMLphp
+ * to be used on the development image. 
+ * Required for tests that use authentication
  */
 
 $config = array(
