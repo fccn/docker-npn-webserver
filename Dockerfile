@@ -80,6 +80,8 @@ COPY build/entrypoint.sh /tmp/entrypoint.sh
 
 RUN chmod 755 /tmp/entrypoint.sh \
   && mkdir -p /run/nginx && mkdir -p ${APP_ROOT} \
+#- change owner of /var/tmp/nginx to prevent cutting long outputs (https://github.com/phpearth/docker-php/issues/9)
+  && chown -R application:application /var/tmp/nginx \
 #change ownership of application root folder
   && chown -R application:application ${APP_ROOT}
 
