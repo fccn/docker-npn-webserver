@@ -8,14 +8,23 @@ pool:
 
 variables:
   image.version.major: '2'
-  image.version.minor: '0'
-  image.version: '$(image.version.major).$(image.version.minor).2'
+  image.version.minor: '1'
+  image.version: '$(image.version.major).$(image.version.minor).0'
   image.basename: 'npn_webserver'
   image.name: '$(image.basename):$(build.buildId)'
   image.tagversion: '$(image.basename):$(image.version)'
   image.taglatest: '$(image.basename):latest'
 
 steps:
+- script: |
+    docker build -f Dockerfile -t $(image.name)-dev . --target=devel-env
+    docker login -u $(dockerId) -p $(dockerPassword)
+    docker tag $(image.name)-dev $(dockerRepoId)/$(image.basename):dev-$(build.buildId)
+    docker tag $(image.name)-dev $(dockerRepoId)/$(image.basename):dev-latest
+    docker push $(dockerRepoId)/$(image.basename):dev-$(build.buildId)
+    docker push $(dockerRepoId)/$(image.basename):dev-latest
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/devel')
+  displayName: 'build devel image and push to docker'
 - script: docker build -f Dockerfile -t $(image.name) .
   displayName: 'build image'
 - script: |
@@ -27,9 +36,10 @@ steps:
 - script: |
     docker login -u $(dockerId) -p $(dockerPassword)
     docker tag $(image.name) $(dockerRepoId)/$(image.tagversion)
+    docker tag $(image.name)$(dockerRepoId)/$(image.basename):$(image.version.major).$(image.version.minor)
     docker tag $(image.name) $(dockerRepoId)/$(image.taglatest)
     docker push $(dockerRepoId)/$(image.tagversion)
-    docker push $(dockerRepoId)/$(image.basename):$(image.version.major)
+    docker push $(dockerRepoId)/$(image.basename):$(image.version.major).$(image.version.minor)
     docker push $(dockerRepoId)/$(image.taglatest)
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   displayName: 'push image to dockerhub'

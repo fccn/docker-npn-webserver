@@ -9,13 +9,12 @@ FROM php:7-fpm-alpine as base
 LABEL maintainer="Paulo Costa <paulo.costa@fccn.pt>"
 
 #---- prepare environment variables
-ARG NODE_VERSION=6
+ARG NPM_VERSION=6
 ARG APP_ROOT=/app
 ARG WEB_DOCUMENT_ROOT=/app/html
 ARG PHP_ROOT=/usr/local/etc/php
 ARG PHP_FPM_ROOT=/usr/local/etc
 ARG NGINX_ROOT=/etc/nginx
-ARG SIMPLESAML_ROOT=/simplesaml
 
 #------ timezone and users
 ENV TZ=Europe/Lisbon
@@ -33,7 +32,7 @@ RUN echo '@testing http://nl.alpinelinux.org/alpine/edge/testing' >> /etc/apk/re
   && apk add --update tzdata && cp /usr/share/zoneinfo/Europe/Lisbon /etc/localtime \
 #additional packages
   && apk add --no-cache --update curl tar bzip2 openssh git gettext-dev icu-dev gmp-dev \
-	nodejs nodejs-npm make nginx freetype libpng libjpeg-turbo \
+	nodejs@edge yarn@edge nodejs-npm make nginx freetype libpng libjpeg-turbo \
   && rm -rf /var/cache/apk/*
 
 #--- PHP
@@ -60,13 +59,6 @@ RUN apk update && apk add --no-cache --update --virtual buildDeps \
 #-remove unecessary libs
  && apk del buildDeps \
  && rm -rf /var/cache/apk/*
-
-#--- NodeJS
-#workaround for manual update of npm
-WORKDIR /tmp/npm-install-directory
-RUN npm install npm@${NODE_VERSION} && \
-    rm -rf /usr/lib/node_modules  && \
-    mv node_modules /usr/lib/
 
 #create self-signed certificate for ssl access
 WORKDIR ${NGINX_ROOT}/ssl
@@ -112,14 +104,6 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
   &&  chmod a+x /usr/local/bin/codecept \
 #-install grunt
   && npm install -g grunt
-
-#TODO install other PHP tools
-
-#-install simplesamlphp
-#WORKDIR ${SIMPLESAML_ROOT}
-#RUN composer create-project simplesamlphp/simplesamlphp .
-#COPY config/simplesaml/config.php ${SIMPLESAML_ROOT}/config/config.php
-#COPY config/simplesaml/authsources.php ${SIMPLESAML_ROOT}/config/authsources.php
 
 FROM scratch
 # production image
