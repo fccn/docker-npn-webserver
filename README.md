@@ -9,9 +9,11 @@ A set of docker images to use for PHP web applications with NGINX and NodeJS.
 
 The following libraries are used:
 - NPM 6.4.1
-- NodeJs v8.11.4
-- PHP 7.2.10
-- Nginx 1.14.0
+- NodeJs v10.15.3
+- PHP 7.3.4
+- Nginx 1.14.2
+
+Using Alpine 3.9.2
 
 ## Requirements
 
