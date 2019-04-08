@@ -21,8 +21,8 @@ steps:
     docker login -u $(dockerId) -p $(dockerPassword)
     docker tag $(image.name)-dev $(dockerRepoId)/$(image.basename):dev-$(build.buildId)
     docker tag $(image.name)-dev $(dockerRepoId)/$(image.basename):dev-latest
-    docker push $(dockerRepoId)/$(image.basename)::dev-$(build.buildId)
-    docker push $(dockerRepoId)/$(image.basename)::dev-latest
+    docker push $(dockerRepoId)/$(image.basename):dev-$(build.buildId)
+    docker push $(dockerRepoId)/$(image.basename):dev-latest
   condition: eq(variables['Build.SourceBranch'], 'refs/heads/devel')
   displayName: 'build devel image and push to docker'
 - script: docker build -f Dockerfile -t $(image.name) .
