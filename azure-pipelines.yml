@@ -19,8 +19,10 @@ steps:
 - script: |
     docker build -f Dockerfile -t $(image.name)-dev . --target=devel-env
     docker login -u $(dockerId) -p $(dockerPassword)
-    docker tag $(image.name)-dev $(dockerRepoId)/$(image.basename):dev
-    docker push $(dockerRepoId)/$(image.basename):dev
+    docker tag $(image.name)-dev $(dockerRepoId)/$(image.basename):dev-$(build.buildId)
+    docker tag $(image.name)-dev $(dockerRepoId)/$(image.basename):dev-latest
+    docker push $(dockerRepoId)/$(image.basename)::dev-$(build.buildId)
+    docker push $(dockerRepoId)/$(image.basename)::dev-latest
   condition: eq(variables['Build.SourceBranch'], 'refs/heads/devel')
   displayName: 'build devel image and push to docker'
 - script: docker build -f Dockerfile -t $(image.name) .
@@ -30,7 +32,6 @@ steps:
     docker run -t $(image.name) npm -v
     docker run -t $(image.name) node -v
     docker run -t $(image.name) php -v
-    docker run -t $(image.name) cat /etc/*release
   displayName: 'validate built image'
 - script: |
     docker login -u $(dockerId) -p $(dockerPassword)
