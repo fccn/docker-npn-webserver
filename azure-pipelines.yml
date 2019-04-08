@@ -7,7 +7,9 @@ pool:
   vmImage: 'Ubuntu 16.04'
 
 variables:
-  image.version: '2.0.1'
+  image.version.major: '2'
+  image.version.minor: '0'
+  image.version: '$(image.version.major).$(image.version.minor).2'
   image.basename: 'npn_webserver'
   image.name: '$(image.basename):$(build.buildId)'
   image.tagversion: '$(image.basename):$(image.version)'
@@ -27,6 +29,7 @@ steps:
     docker tag $(image.name) $(dockerRepoId)/$(image.tagversion)
     docker tag $(image.name) $(dockerRepoId)/$(image.taglatest)
     docker push $(dockerRepoId)/$(image.tagversion)
+    docker push $(dockerRepoId)/$(image.basename):$(image.version.major)
     docker push $(dockerRepoId)/$(image.taglatest)
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   displayName: 'push image to dockerhub'
