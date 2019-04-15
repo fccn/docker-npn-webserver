@@ -67,9 +67,7 @@ RUN apk update && apk add --no-cache --update --virtual buildDeps \
 #create self-signed certificate for ssl access
 WORKDIR ${NGINX_ROOT}/ssl
 RUN openssl req -x509 -nodes -newkey rsa:4096 -keyout docker_selfsigned.key -out docker_selfsigned.crt \
-  -subj "/C=PT/ST=Lisbon/L=Lisbon/O=FCT|FCCN/OU=STV/CN=docker" -days 3650 \
-#change owner of /var/tmp/nginx to prevent cutting long outputs (https://github.com/phpearth/docker-php/issues/9)
-  && chown -R application:application /var/tmp/nginx
+  -subj "/C=PT/ST=Lisbon/L=Lisbon/O=FCT|FCCN/OU=STV/CN=docker" -days 3650
 
 #-prepare startup
 COPY build/entrypoint.sh /tmp/entrypoint.sh
