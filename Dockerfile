@@ -19,9 +19,6 @@ ARG NGINX_ROOT=/etc/nginx
 #------ timezone and users
 ENV TZ=Europe/Lisbon
 
-#add application user and group
-RUN addgroup -g 1000 application && adduser -u 1000 -G application -D application
-
 #add required packages
 RUN echo '@testing http://nl.alpinelinux.org/alpine/edge/testing' >> /etc/apk/repositories \
   && echo '@community http://nl.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories \
@@ -33,7 +30,14 @@ RUN echo '@testing http://nl.alpinelinux.org/alpine/edge/testing' >> /etc/apk/re
 #additional packages
   && apk add --no-cache --update curl tar bzip2 openssh git gettext-dev icu-dev gmp-dev \
 	nodejs@edge yarn@edge nodejs-npm make nginx freetype libpng libjpeg-turbo \
-  && rm -rf /var/cache/apk/*
+  && rm -rf /var/cache/apk/* \
+#prepare .ssh folder and add github and fccn's gitlab ssh keys
+  && mkdir -p ~/.ssh && chmod 700 ~/.ssh \
+  ; ssh-keyscan gitlab.fccn.pt >> ~/.ssh/known_hosts \
+  ; ssh-keyscan github.com >> ~/.ssh/known_hosts \
+#add application user and group
+  && addgroup -g 1000 application && adduser -u 1000 -G application -D application \
+  && chown -R application:application /home/application
 
 #--- PHP
 
@@ -105,7 +109,9 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
   && curl -LsS https://codeception.com/codecept.phar -o /usr/local/bin/codecept \
   &&  chmod a+x /usr/local/bin/codecept \
 #-install grunt
-  && npm install -g grunt
+  && npm install -g grunt \
+#-make sure home for application user has right permissions
+  && chown -R application:application /home/application
 
 FROM scratch
 # production image
@@ -134,7 +140,9 @@ COPY config/nginx/ssl.conf ${NGINX_ROOT}/ssl.conf
 
 WORKDIR ${APP_ROOT}
 
-# display version numbers
-RUN echo "Using libraries:"; echo " - NPM " $(npm -v); echo " - NodeJS " $(node -v); echo $(php -v); \
+#make sure home for application user has right permissions
+RUN chown -R application:application /home/application
+  # display version numbers
+  echo "Using libraries:"; echo " - NPM " $(npm -v); echo " - NodeJS " $(node -v); echo $(php -v); \
 	echo $(nginx -v);
 CMD ["/tmp/entrypoint.sh"]
