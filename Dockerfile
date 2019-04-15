@@ -85,6 +85,9 @@ LABEL maintainer="Paulo Costa <paulo.costa@fccn.pt>"
 #--- copy contents from base image
 COPY --from=base / /
 
+#---- prepare environment variables
+ARG APP_ROOT=/app
+
 #--- PHP configurations
 COPY config/php/conf.d/xzz_fccn-commons.ini ${PHP_ROOT}/conf.d/xzz_fccn-commons.ini
 COPY config/php/php-fpm.d/www.conf ${PHP_FPM_ROOT}/php-fpm.d/www.conf
@@ -108,8 +111,9 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
   &&  chmod a+x /usr/local/bin/codecept \
 #-install grunt
   && npm install -g grunt \
-#-make sure home for application user has right permissions
-  && chown -R application:application /home/application
+#-make sure home for application and user has right permissions
+  && chown -R application:application /home/application \
+  && chown -R application:application ${APP_ROOT}
 
 FROM scratch
 # production image
@@ -138,9 +142,10 @@ COPY config/nginx/ssl.conf ${NGINX_ROOT}/ssl.conf
 
 WORKDIR ${APP_ROOT}
 
-#make sure home for application user has right permissions
-RUN chown -R application:application /home/application
+#make sure home for application and user has right permissions
+RUN chown -R application:application /home/application \
+  && chown -R application:application ${APP_ROOT} \
   # display version numbers
-  echo "Using libraries:"; echo " - NPM " $(npm -v); echo " - NodeJS " $(node -v); echo $(php -v); \
+  && echo "Using libraries:"; echo " - NPM " $(npm -v); echo " - NodeJS " $(node -v); echo $(php -v); \
 	echo $(nginx -v);
 CMD ["/tmp/entrypoint.sh"]

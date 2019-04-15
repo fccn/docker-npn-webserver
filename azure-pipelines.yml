@@ -9,7 +9,7 @@ pool:
 variables:
   image.version.major: '2'
   image.version.minor: '1'
-  image.version: '$(image.version.major).$(image.version.minor).0'
+  image.version: '$(image.version.major).$(image.version.minor).1'
   image.basename: 'npn_webserver'
   image.name: '$(image.basename):$(build.buildId)'
   image.tagversion: '$(image.basename):$(image.version)'
