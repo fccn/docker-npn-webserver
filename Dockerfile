@@ -87,6 +87,10 @@ COPY --from=base / /
 
 #---- prepare environment variables
 ARG APP_ROOT=/app
+ARG WEB_DOCUMENT_ROOT=/app/html
+ARG PHP_ROOT=/usr/local/etc/php
+ARG PHP_FPM_ROOT=/usr/local/etc
+ARG NGINX_ROOT=/etc/nginx
 
 #--- PHP configurations
 COPY config/php/conf.d/xzz_fccn-commons.ini ${PHP_ROOT}/conf.d/xzz_fccn-commons.ini
