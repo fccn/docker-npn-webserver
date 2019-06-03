@@ -35,6 +35,9 @@ build-dev-nc: ## Build the development image without caching
 shell: image ## run a shell in a new container created from image
 	docker run -a stdin -a stdout -i -t --entrypoint=/bin/sh $(APP_NAME)
 
+dev-shell: dev-image ## run a shell in a new dev container 
+	docker run -a stdin -a stdout -i -t --rm --name "$(DEV_APP_NAME)_test" --entrypoint=/bin/sh $(DEV_APP_NAME)
+
 release: build-nc publish ## Make a release by building and publishing the `{version}` and `latest` tagged containers to repository
 
 dev-release: build-dev-nc publish-dev ## Make a development release by building and publishing the `dev-{version}` and `dev-latest` tagged container to repository
@@ -75,4 +78,7 @@ version: ## Output the current version
 	@echo $(VERSION)
 
 test: image ## run a test container with the image
-	docker run -i -t -d -v $(pwd)/test/www:/app/html -p 10443:443 $(APP_NAME):latest
+	docker run -d --rm --name $(APP_NAME)_test -v $(PWD)/test/www:/app/html --entrypoint=/tmp/entrypoint.sh $(APP_NAME) 
+	sleep 5
+	docker exec -t $(APP_NAME)_test wget --quiet -S --spider --no-check-certificate https://localhost
+	docker rm -f $(APP_NAME)_test
