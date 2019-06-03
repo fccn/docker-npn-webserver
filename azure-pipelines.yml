@@ -34,10 +34,10 @@ steps:
     docker run -t $(image.name) php -v
   displayName: 'validate built image'
 - script: |
-    docker run -d --rm --name $(image.name)_test -v $(PWD)/test/www:/app/html --entrypoint=/tmp/entrypoint.sh $(image.name) 
+    docker run -d --rm --name $(image.basename)_test -v $(PWD)/test/www:/app/html --entrypoint=/tmp/entrypoint.sh $(image.name) 
     sleep 5
-    docker exec -t $(image.name)_test wget --quiet -S --spider --no-check-certificate https://localhost
-    docker rm -f $(image.name)_test
+    docker exec -t $(image.basename)_test wget --quiet -S --spider --no-check-certificate https://localhost
+    docker rm -f $(image.basename)_test
   displayName: 'run a test on the image'
 - script: |
     docker login -u $(dockerId) -p $(dockerPassword)
