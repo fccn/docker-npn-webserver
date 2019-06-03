@@ -35,8 +35,8 @@ steps:
   displayName: 'validate built image'
 - script: |
     docker run -d --rm --name $(image.name)_test -v $(PWD)/test/www:/app/html --entrypoint=/tmp/entrypoint.sh $(image.name) 
-	  sleep 5
-	  docker exec -t $(image.name)_test wget --quiet -S --spider --no-check-certificate https://localhost
+    sleep 5
+    docker exec -t $(image.name)_test wget --quiet -S --spider --no-check-certificate https://localhost
     docker rm -f $(image.name)_test
   displayName: 'run a test on the image'
 - script: |
